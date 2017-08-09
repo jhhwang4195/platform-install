@@ -14,8 +14,8 @@ topology_template:
 
 
 # vrouter service, fully created in cord-service.yaml
-    service#vrouter:
-      type: tosca.nodes.VRouterService
+#    service#vrouter:
+#      type: tosca.nodes.VRouterService
 
 # public network
 
@@ -37,9 +37,9 @@ topology_template:
           - owner:
               node: {{ site_name }}_public
               relationship: tosca.relationships.MemberOfSlice
-          - vrouter_tenant:
-              node: service#vrouter
-              relationship: tosca.relationships.TenantOfService
+#          - vrouter_tenant:
+#              node: service#vrouter
+#              relationship: tosca.relationships.TenantOfService
 
 
     {{ site_name }}_public:

@@ -1,0 +1,35 @@
+---
+# lbaas-image-build/tasks/main.yml
+- name: Build LBaaS docker image
+  docker_image:
+    name: lbaas
+    path: "{{ head_lbaas_dir }}"
+    tag: latest
+    dockerfile: Dockerfile
+    pull: False
+    force: True
+- name: Run LBaaS container
+  docker_container:
+    name: lbaas
+    image: lbaas:latest
+- name: Archive image
+  docker_image:
+    name: lbaas:latest
+    tag: latest
+    archive_path: lbaas.tar
+- name: Stop LBaaS container
+  docker_container:
+    name: lbaas
+    state: stopped
+- name: Remove container
+  docker_container:
+    name: lbaas
+    state: absent
+- name: Copy LBaaS docker image
+  copy:
+    src: lbaas.tar
+    dest: "{{head_docker_image_dir}}/lbaas.tar"
+- name: Delete LBaaS docker image
+  file:
+    state: absent
+    path: lbaas.tar

@@ -1,0 +1,18 @@
+---
+tosca_definitions_version: tosca_simple_yaml_1_0
+description: Have the XOS container mount the lbaas volume
+imports:
+   - custom_types/xos.yaml
+topology_template:
+  node_templates:
+    xos:
+      type: tosca.nodes.XOS
+    /opt/xos_services/lbaas:
+      type: tosca.nodes.XOSVolume
+      properties:
+          host_path: "{{ head_cord_dir }}/orchestration/xos_services/lbaas"
+          read_only: True
+      requirements:
+          - xos:
+             node: xos
+             relationship: tosca.relationships.UsedByXOS

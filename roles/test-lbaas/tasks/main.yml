@@ -1,0 +1,18 @@
+---
+# test-lbass/tasks/main.yml
+- name: Load TOSCA to apply test config for LBaaS, over REST
+  xostosca:
+    url: "http://xos.{{ site_suffix }}:{{ xos_ui_port }}/api/utility/tosca/run/"
+    user: "{{ xos_admin_user }}"
+    password:  "{{ xos_admin_pass }}"
+    recipe: "{{ lookup('file', head_cord_profile_dir + '/test-lbaas.yaml' ) }}"
+ 
+- name: Wait for LbService to come up
+  ## shell: ssh root@{{ swarm_manager_node }} "docker service ls | grep lbaas > /dev/null"
+  shell: ssh root@{{ swarm_manager_node }} "docker service ls | grep lbaas"
+  register: result
+  until: result | success
+  retries: 30
+  delay: 5
+  tags:
+    - skip_ansible_lint # running a sub job

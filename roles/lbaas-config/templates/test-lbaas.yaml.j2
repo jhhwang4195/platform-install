@@ -1,0 +1,144 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+description: Setup the LbService on the pod
+imports:
+   - custom_types/xos.yaml
+   - custom_types/lbaas.yaml
+topology_template:
+  node_templates:
+# image/flavor are hardcoded - FIXME if/when they change
+    m1.large:
+      type: tosca.nodes.Flavor
+    ## andrew  2017.06.26
+    ## trusty-server-multi-nic:
+    lbaas:
+      type: tosca.nodes.Image
+# private network template, created in fixtures.yml
+    Private:
+      type: tosca.nodes.NetworkTemplate
+# site, fully created in deployment.yaml
+    {{ site_name }}:
+      type: tosca.nodes.Site
+# management network, fully created in management-net.yaml
+    management:
+      type: tosca.nodes.network.Network.XOS
+      properties:
+        no-create: true
+        no-delete: true
+        no-update: true
+# public network, fully created in public-net.yaml
+    public:
+      type: tosca.nodes.network.Network.XOS
+      properties:
+        no-create: true
+        no-delete: true
+        no-update: true
+    {{ site_name }}_lbaas:
+      description: This slice holds the LBaaS
+      type: tosca.nodes.Slice
+      properties:
+        network: noauto
+      requirements:
+        - site:
+            node: {{ site_name }}
+            relationship: tosca.relationships.MemberOfSite
+        - management:
+            node: management
+            relationship: tosca.relationships.ConnectsToNetwork
+        - public:
+            node: public
+            relationship: tosca.relationships.ConnectsToNetwork
+        - exmapleserver:
+            node: service#lbaas
+            relationship: tosca.relationships.MemberOfService
+        - image:
+            node: lbaas
+            relationship: tosca.relationships.DefaultImage
+        - default_flavor:
+            node: m1.large
+            relationship: tosca.relationships.DefaultFlavor
+    service#lbaas:
+      type: tosca.nodes.LbService
+      requirements:
+        - management:
+            node: management
+            relationship: tosca.relationships.UsesNetwork
+      properties:
+        view_url: /admin/lbaas/lbaas/$id$/
+        kind: lbaas
+        public_key: { get_artifact: [ SELF, pubkey, LOCAL_FILE] }
+        private_key_fn: /opt/xos/services/lbaas/keys/lbaas_rsa
+        service_name: LBaaS
+      artifacts:
+        pubkey: /opt/cord_profile/key_import/lbaas_rsa.pub
+    tenant#testlb:
+      type: tosca.nodes.Loadbalancer
+      properties:
+        loadbalancer_id: 111120d0-18e9-42ce-88fd-82a35977ee8c
+        listener_id: 1
+        pool_id: 1
+        description: web server loadbalancer1
+        vip_subnet_id: 013d3059-87a4-45a5-91e9-d721068ae0b2
+        vip_address: 0.0.0.0
+        admin_state_up: true
+        operating_status: ONLINE
+        provisioning_status: ACTIVE
+      requirements:
+        - tenant:
+            node: service#lbaas
+            relationship: tosca.relationships.TenantOfService
+        - dependency:
+            node: {{ site_name }}_lbaas
+            relationship: tosca.relationships.DependsOn
+        - listener:
+            node: listener#sona-listener
+            relationship: tosca.relationships.ListenerOfLoadbalancer
+        - pool:
+            node: pool#sona-pool
+            relationship: tosca.relationships.PoolOfLoadbalancer
+    listener#sona-listener:
+        type: tosca.nodes.Listener
+        properties:
+            protocol: http
+            admin_state_up: True
+            protocol_port: 9004
+            stat_port: 9005
+            connection_limit: 100
+    healthmonitor#http:
+        type: tosca.nodes.Healthmonitor
+        properties:
+            type: http
+            delay: 3
+            max_retries: 3
+            timeout: 3
+            http_method: GET
+            admin_state_up: True
+    pool#sona-pool:
+        type: tosca.nodes.Pool
+        properties:
+            lb_algorithm: ROUND_ROBIN
+            subnet_id: 11111-22222
+            admin_state_up: True
+        requirements:
+          - healthmonitor:
+              node: healthmonitor#http
+              relationship: tosca.relationships.HealthmonitorOfPool
+    httpsvcmember1:
+        type: tosca.nodes.Member
+        properties:
+            protocol_port: 9001
+            address: 10.10.2.241
+            admin_state_up: True
+        requirements:
+          - memberpool:
+              node: pool#sona-pool
+              relationship: tosca.relationships.PoolOfMember
+    httpsvcmember2:
+        type: tosca.nodes.Member
+        properties:
+            protocol_port: 9001
+            address: 10.10.2.242
+            admin_state_up: True
+        requirements:
+          - memberpool:
+              node: pool#sona-pool
+              relationship: tosca.relationships.PoolOfMember

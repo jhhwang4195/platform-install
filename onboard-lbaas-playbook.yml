@@ -1,0 +1,20 @@
+---
+# onboard-lbaas-playbook.yml
+# Adds the lbservice to the currently running pod
+- name: Include vars
+  hosts: head
+  tasks:
+    - name: Include variables
+      include_vars: "{{ item }}"
+      with_items:
+        - "profile_manifests/{{ cord_profile }}.yml"
+        - profile_manifests/local_vars.yml
+- name: Create lbaas configuration
+  hosts: head
+  roles:
+    - lbaas-config
+- name: Test LbService
+  hosts: head
+  become: no
+  roles:
+    - test-lbaas

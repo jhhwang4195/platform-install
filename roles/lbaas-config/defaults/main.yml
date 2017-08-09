@@ -1,0 +1,4 @@
+---
+# lbaas-config/defaults/main.yml
+head_cord_dir: "/opt/cord"
+head_cord_profile_dir: "/opt/cord_profile"

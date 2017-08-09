@@ -1,0 +1,15 @@
+; sona configuration
+[all:vars]
+cord_profile=sona
+ 
+[head]
+localhost ansible_connection=local
+ 
+[config]
+localhost ansible_connection=local
+ 
+[build]
+localhost ansible_connection=local
+ 
+[compute]
+swarm00

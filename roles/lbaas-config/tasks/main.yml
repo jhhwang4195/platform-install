@@ -1,0 +1,24 @@
+---
+# lbaas-config/tasks/main.yml
+- name: Create fake/empty ssh keys if profile hasn't created them
+  copy:
+    remote_src: True # file is local to the remote machine
+    force: False # only copy if destination file doesn't exist
+    src: "/dev/null"
+    dest: "{{ head_cord_profile_dir }}/key_import/{{ item }}"
+    mode: 0600
+  with_items:
+    - lbaas_rsa
+    - lbaas_rsa.pub
+- name: Copy lbaas onboarding TOSCA files to cord_profile
+  copy:
+    src: "{{ head_cord_dir }}/orchestration/xos_services/lbaas/xos/lbaas-onboard.yaml"
+    dest: "{{ head_cord_profile_dir }}/lbaas-onboard.yaml"
+- name: TOSCA to mount lbaas volume in XOS container
+  template:
+    src: "xos-lbaas.yaml.j2"
+    dest: "{{ head_cord_profile_dir }}/xos-lbaas.yaml"
+- name: TOSCA to create lbaas test config
+  template:
+    src: "test-lbaas.yaml.j2"
+    dest: "{{ head_cord_profile_dir }}/test-lbaas.yaml"

@@ -1,0 +1,14 @@
+---
+# build-lbaas-image.yml
+- name: Include vars
+  hosts: head
+  tasks:
+    - name: Include variables
+      include_vars: "{{ item }}"
+      with_items:
+        - "profile_manifests/{{ cord_profile }}.yml"
+        - profile_manifests/local_vars.yml
+- name: Build lbaas image
+  hosts: head
+  roles:
+    - lbaas-image-build

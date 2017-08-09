@@ -1,0 +1,6 @@
+---
+# lbaas-image-build/defaults/main.yml
+head_cord_dir: "/opt/cord"
+head_cord_profile_dir: "/opt/cord_profile"
+head_lbaas_dir: "/root/cord/orchestration/xos_services/lbaas/xos/docker_image"
+head_docker_image_dir: "/opt/cord_profile/images"

@@ -1,0 +1,8 @@
+## andrew  2017-08-04
+## TODO  To remove this file.
+export OS_USERNAME=admin
+export OS_PASSWORD={{ keystone_admin_password }}
+export OS_TENANT_NAME=admin
+export OS_AUTH_URL={{ swarm_manager_url }}
+export OS_REGION_NAME=RegionOne
+export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
